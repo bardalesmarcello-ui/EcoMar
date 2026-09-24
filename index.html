@@ -1,444 +1,319 @@
-<html lang="es">
-
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>EcoMar - Monitoreo de Ecosistemas</title>
-
-    <!-- Fuentes y CDN -->
-
+    <title>EcoMar: Calculadora y Monitoreo de Huella Plástica Marina</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
-
-    
-
-    <style>
-
-        :root {
-
-            --navy: #1B263B;
-
-            --slate: #415A77;
-
-            --light-blue: #E0E1DD;
-
-            --accent: #778DA9;
-
-            --bg: #F8F9FA;
-
-        }
-
-        body {
-
-            font-family: 'Inter', sans-serif;
-
-            margin: 0;
-
-            background-color: var(--bg);
-
-            color: var(--navy);
-
-            line-height: 1.6;
-
-        }
-
-        header {
-
-            background-color: var(--navy);
-
-            color: white;
-
-            padding: 2rem;
-
-            text-align: center;
-
-        }
-
-        h1, h2 { font-family: 'Lexend', sans-serif; }
-
-        .container {
-
-            max-width: 1100px;
-
-            margin: 0 auto;
-
-            padding: 2rem;
-
-        }
-
-        .team-section {
-
-            background: white;
-
-            padding: 1.5rem;
-
-            border-radius: 8px;
-
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-
-            margin-bottom: 2rem;
-
-        }
-
-        .dashboard {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 2rem;
-
-            margin-bottom: 3rem;
-
-        }
-
-        .chart-container {
-
-            background: white;
-
-            padding: 1.5rem;
-
-            border-radius: 8px;
-
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-
-        }
-
-        #threejs-container {
-
-            width: 100%;
-
-            height: 500px;
-
-            background: radial-gradient(circle, #1B263B 0%, #0D1321 100%);
-
-            border-radius: 12px;
-
-            position: relative;
-
-            overflow: hidden;
-
-            margin-top: 2rem;
-
-        }
-
-        .hotspot-info {
-
-            position: absolute;
-
-            bottom: 20px;
-
-            left: 20px;
-
-            right: 20px;
-
-            background: rgba(255, 255, 255, 0.9);
-
-            padding: 1rem;
-
-            border-radius: 8px;
-
-            display: none;
-
-            border-left: 5px solid var(--slate);
-
-        }
-
-        .controls-hint {
-
-            position: absolute;
-
-            top: 10px;
-
-            left: 10px;
-
-            color: white;
-
-            font-size: 0.8rem;
-
-            background: rgba(0,0,0,0.3);
-
-            padding: 5px 10px;
-
-            border-radius: 4px;
-
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-    <header>
-
-        <h1>Proyecto EcoMar</h1>
-
-        <p>Preservación Tecnológica de los Océanos</p>
-
-    </header>
-
-    <div class="container">
-
-        <!-- Integrantes -->
-
-        <section class="team-section">
-
-            <h2>Equipo de Desarrollo</h2>
-
-            <ul>
-
-                <li><strong>Fabrizio Valle</strong> - Especialista en Visualización de Datos</li>
-
-                <li><span type="placeholder" placeholder-type="person"></span> - Liderazgo de Proyecto</li>
-
-            </ul>
-
-        </section>
-
-        <!-- Gráficos Interactivos -->
-
-        <section>
-
-            <h2>Análisis de Impacto Ambiental</h2>
-
-            <div class="dashboard">
-
-                <div class="chart-container">
-
-                    <h3>Tipos de Desechos Plásticos</h3>
-
-                    <canvas id="barChart"></canvas>
-
-                </div>
-
-                <div class="chart-container">
-
-                    <h3>Distribución del Impacto</h3>
-
-                    <canvas id="pieChart"></canvas>
-
-                </div>
-
-            </div>
-
-        </section>
-
-        <!-- Maqueta 3D -->
-
-        <section>
-
-            <h2>Visualización Inmersiva 3D: Ecosistema Marino</h2>
-
-            <p>Interactúa con la maqueta para identificar puntos críticos de contaminación y soluciones propuestas.</p>
-
-            <div id="threejs-container">
-
-                <div class="controls-hint">Haz clic en las esferas flotantes para obtener información</div>
-
-                <div id="info-card" class="hotspot-info">
-
-                    <h4 id="info-title">Detalle</h4>
-
-                    <p id="info-content">Selecciona un punto de interés.</p>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </div>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ocean: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        eco: {
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
 
-        // 1. Configuración de Chart.js - Gráfico de Barras
+    <!-- Navegación -->
+    <nav class="bg-ocean-900 text-white sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid font-bold text-2xl text-eco-400 fa-water"></i>
+                    <span class="font-bold text-xl tracking-tight">EcoMar</span>
+                </div>
+                <div class="hidden md:flex space-x-6 text-sm font-medium">
+                    <a href="#equipo" class="hover:text-eco-400 transition">Equipo</a>
+                    <a href="#calculadora" class="hover:text-eco-400 transition">Calculadora</a>
+                    <a href="#graficos" class="hover:text-eco-400 transition">Análisis de Datos</a>
+                    <a href="#maqueta3d" class="hover:text-eco-400 transition">Maqueta 3D</a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
+    <!-- Encabezado Principal -->
+    <header class="bg-gradient-to-b from-ocean-900 to-ocean-800 text-white py-12 px-4 text-center">
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">Proyecto EcoMar</h1>
+        <p class="text-ocean-100 max-w-2xl mx-auto text-base md:text-lg">Preservación Tecnológica de los Océanos y Monitoreo de Impacto Ambiental</p>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- 1. Sección de Equipo -->
+        <section id="equipo" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-xl font-bold text-ocean-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-users text-ocean-600"></i> Equipo de Desarrollo
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/60 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-ocean-100 text-ocean-700 flex items-center justify-center font-bold">
+                        FV
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800">Fabrizio Valle</p>
+                        <p class="text-xs text-slate-500">Desarrollo & Visualización de Datos</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Sección: Calculadora de Huella Plástica -->
+        <section id="calculadora" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="text-2xl font-bold text-ocean-900 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-calculator text-eco-600"></i> Calculadora de Huella Plástica Marina
+                </h2>
+                <p class="text-slate-600 mb-6 text-sm">Calcula tu consumo estimado de plástico mensual e impacto ambiental aproximado.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Botellas plásticas al mes</label>
+                            <input type="number" id="botellas" value="10" min="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-ocean-500 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Bolsas plásticas al mes</label>
+                            <input type="number" id="bolsas" value="15" min="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-ocean-500 outline-none text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Empaques / Envoltorios al mes</label>
+                            <input type="number" id="empaques" value="20" min="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-ocean-500 outline-none text-sm">
+                        </div>
+                        <button onclick="calcularHuella()" class="w-full bg-ocean-600 hover:bg-ocean-700 text-white font-semibold py-2.5 rounded-lg transition text-sm">
+                            Calcular Impacto
+                        </button>
+                    </div>
+
+                    <div class="bg-ocean-50 p-6 rounded-xl flex flex-col justify-center items-center text-center border border-ocean-100">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-ocean-700">Tu huella estimada</span>
+                        <span id="resultado-kg" class="text-4xl font-extrabold text-ocean-900 my-2">0.90 kg</span>
+                        <span class="text-xs text-slate-600">de residuos plásticos al año</span>
+                        <div id="mensaje-evaluacion" class="mt-4 text-xs font-medium px-3 py-1.5 rounded-full bg-eco-400/20 text-eco-700">
+                            Impacto Bajo
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Sección: Gráficos de Análisis -->
+        <section id="graficos" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-bold text-ocean-900 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-chart-column text-ocean-600"></i> Análisis de Impacto Ambiental
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4 text-center">Tipos de Desechos Plásticos Recolectados (Tons)</h3>
+                    <div class="relative h-64">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                    <h3 class="text-sm font-semibold text-slate-700 mb-4 text-center">Distribución de Factores de Impacto</h3>
+                    <div class="relative h-64">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Sección: Maqueta 3D Interactiva -->
+        <section id="maqueta3d" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-bold text-ocean-900 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-cubes text-ocean-600"></i> Visualización Inmersiva 3D: Ecosistema Marino
+            </h2>
+            <p class="text-slate-600 text-sm mb-4">Interactúa con el modelo rotatorio. Haz clic en los puntos flotantes (hotspots) para inspeccionar información técnica.</p>
+
+            <div id="threejs-container" class="w-full h-[450px] bg-slate-900 rounded-xl relative overflow-hidden shadow-inner">
+                <div class="absolute top-3 left-3 bg-black/40 text-white text-xs px-3 py-1.5 rounded-md backdrop-blur-sm z-10 pointer-events-none">
+                    <i class="fa-solid fa-hand-pointer mr-1"></i> Haz clic en las esferas blancas para abrir información
+                </div>
+
+                <!-- Tarjeta de Información Flotante -->
+                <div id="info-card" class="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-lg border-l-4 border-ocean-600 hidden transition-all z-10">
+                    <div class="flex justify-between items-start">
+                        <h4 id="info-title" class="font-bold text-ocean-900 text-base">Detalle</h4>
+                        <button onclick="cerrarCard()" class="text-slate-400 hover:text-slate-600 text-sm">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <p id="info-content" class="text-slate-600 text-xs mt-1">Selecciona un punto de interés.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-ocean-900 text-ocean-100 py-6 text-center text-xs border-t border-ocean-800 mt-auto">
+        <p>© 2026 Proyecto EcoMar - Preservación y Monitoreo Ambiental</p>
+    </footer>
+
+    <script>
+        // --- 1. LÓGICA DE LA CALCULADORA ---
+        function calcularHuella() {
+            const botellas = parseFloat(document.getElementById('botellas').value) || 0;
+            const bolsas = parseFloat(document.getElementById('bolsas').value) || 0;
+            const empaques = parseFloat(document.getElementById('empaques').value) || 0;
+
+            // Peso promedio en kg por unidad al año
+            const kgAnual = ((botellas * 0.025) + (bolsas * 0.005) + (empaques * 0.01)) * 12;
+            document.getElementById('resultado-kg').innerText = kgAnual.toFixed(2) + " kg";
+
+            const evalElem = document.getElementById('mensaje-evaluacion');
+            if (kgAnual < 10) {
+                evalElem.innerText = "Impacto Bajo";
+                evalElem.className = "mt-4 text-xs font-medium px-3 py-1.5 rounded-full bg-eco-400/20 text-eco-700";
+            } else if (kgAnual < 25) {
+                evalElem.innerText = "Impacto Moderado";
+                evalElem.className = "mt-4 text-xs font-medium px-3 py-1.5 rounded-full bg-amber-400/20 text-amber-700";
+            } else {
+                evalElem.innerText = "Impacto Alto";
+                evalElem.className = "mt-4 text-xs font-medium px-3 py-1.5 rounded-full bg-red-400/20 text-red-700";
+            }
+        }
+
+        // --- 2. CONFIGURACIÓN DE GRÁFICOS (Chart.js) ---
         const ctxBar = document.getElementById('barChart').getContext('2d');
-
         new Chart(ctxBar, {
-
             type: 'bar',
-
             data: {
-
-                labels: ['Botellas', 'Redes', 'Microplásticos', 'Bolsas', 'Otros'],
-
+                labels: ['Botellas PET', 'Redes Pesca', 'Microplásticos', 'Bolsas', 'Otros'],
                 datasets: [{
-
-                    label: 'Toneladas Recolectadas',
-
+                    label: 'Toneladas Estimadas',
                     data: [2500, 1200, 3800, 950, 450],
-
-                    backgroundColor: '#415A77',
-
-                    borderRadius: 5
-
+                    backgroundColor: '#0284c7',
+                    borderRadius: 6
                 }]
-
             },
-
-            options: { responsive: true, plugins: { legend: { display: false } } }
-
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
-
-        // 2. Configuración de Chart.js - Gráfico Circular
 
         const ctxPie = document.getElementById('pieChart').getContext('2d');
-
         new Chart(ctxPie, {
-
             type: 'pie',
-
             data: {
-
                 labels: ['Biodiversidad', 'Microplásticos', 'Contaminación Química', 'Hábitat'],
-
                 datasets: [{
-
                     data: [40, 30, 20, 10],
-
-                    backgroundColor: ['#1B263B', '#415A77', '#778DA9', '#E0E1DD']
-
+                    backgroundColor: ['#0c4a6e', '#0284c7', '#38bdf8', '#e0f2fe']
                 }]
-
-            }
-
+            },
+            options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // 3. Simulación 3D con Three.js
-
+        // --- 3. MAQUETA 3D INTERACTIVA (Three.js) ---
         const container = document.getElementById('threejs-container');
-
         const scene = new THREE.Scene();
-
         const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-
+        
         renderer.setSize(container.clientWidth, container.clientHeight);
-
         container.appendChild(renderer.domElement);
 
         // Iluminación
-
-        const light = new THREE.PointLight(0xffffff, 1, 100);
-
+        const light = new THREE.PointLight(0xffffff, 1.2, 100);
         light.position.set(10, 10, 10);
-
         scene.add(light);
+        scene.add(new THREE.AmbientLight(0x334155));
 
-        scene.add(new THREE.AmbientLight(0x404040));
-
-        // Representación del Océano (Plano azulado)
-
+        // Objeto central (Océano)
         const geometry = new THREE.SphereGeometry(2, 32, 32);
-
-        const material = new THREE.MeshPhongMaterial({ color: 0x415A77, transparent: true, opacity: 0.8 });
-
+        const material = new THREE.MeshPhongMaterial({ color: 0x0284c7, transparent: true, opacity: 0.85, wireframe: false });
         const ocean = new THREE.Mesh(geometry, material);
-
         scene.add(ocean);
 
-        // Hotspots (Esferas interactivas)
-
+        // Hotspots (Puntos interactivos)
         const hotspots = [];
-
-        const createHotspot = (x, y, z, info) => {
-
-            const hGeo = new THREE.SphereGeometry(0.2, 16, 16);
-
+        function createHotspot(x, y, z, info) {
+            const hGeo = new THREE.SphereGeometry(0.18, 16, 16);
             const hMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-
             const hotspot = new THREE.Mesh(hGeo, hMat);
-
             hotspot.position.set(x, y, z);
-
             hotspot.userData = info;
-
             hotspots.push(hotspot);
-
             scene.add(hotspot);
+        }
 
-        };
+        createHotspot(2.2, 0, 0, { title: "Zona de Microplásticos", text: "Alta densidad de partículas detectada en giros oceánicos." });
+        createHotspot(-1, 1.8, 1, { title: "Arrecifes y Biodiversidad", text: "Zonas vulnerables afectadas por la acumulación de desechos." });
+        createHotspot(0, -2.2, 0, { title: "Tecnología de Filtrado", text: "Ubicación sugerida para barreras flotantes de contención." });
 
-        createHotspot(2.2, 0, 0, { title: "Zona de Microplásticos", text: "Alta concentración detectada en corrientes superficiales." });
+        camera.position.z = 4.8;
 
-        createHotspot(-1, 1.8, 1, { title: "Biodiversidad", text: "Área protegida con arrecifes de coral en recuperación." });
-
-        createHotspot(0, -2.2, 0, { title: "Soluciones: Filtros", text: "Propuesta de implementación de barreras biotecnológicas." });
-
-        camera.position.z = 5;
-
-        // Raycaster para interacciones
-
+        // Interacción con clics
         const raycaster = new THREE.Raycaster();
-
         const mouse = new THREE.Vector2();
 
         container.addEventListener('click', (event) => {
-
             const rect = container.getBoundingClientRect();
-
             mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
-
             mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
 
             raycaster.setFromCamera(mouse, camera);
-
             const intersects = raycaster.intersectObjects(hotspots);
 
             if (intersects.length > 0) {
-
                 const data = intersects[0].object.userData;
-
-                document.getElementById('info-card').style.display = 'block';
-
+                document.getElementById('info-card').classList.remove('hidden');
                 document.getElementById('info-title').innerText = data.title;
-
                 document.getElementById('info-content').innerText = data.text;
-
             }
-
         });
 
-        function animate() {
-
-            requestAnimationFrame(animate);
-
-            ocean.rotation.y += 0.005;
-
-            hotspots.forEach(h => {
-
-                h.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.005);
-
-            });
-
-            renderer.render(scene, camera);
-
+        function cerrarCard() {
+            document.getElementById('info-card').classList.add('hidden');
         }
 
+        function animate() {
+            requestAnimationFrame(animate);
+            ocean.rotation.y += 0.003;
+            hotspots.forEach(h => {
+                h.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.003);
+            });
+            renderer.render(scene, camera);
+        }
         animate();
 
         window.addEventListener('resize', () => {
-
             camera.aspect = container.clientWidth / container.clientHeight;
-
             camera.updateProjectionMatrix();
-
             renderer.setSize(container.clientWidth, container.clientHeight);
-
         });
-
     </script>
-
 </body>
-
 </html>
-
