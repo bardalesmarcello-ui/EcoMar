@@ -1,667 +1,444 @@
-<!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoMar: Calculadora de Huella Plástica Marina</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
+
+    <title>EcoMar - Monitoreo de Ecosistemas</title>
+
+    <!-- Fuentes y CDN -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        ocean: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                        },
-                        eco: {
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                        },
-                        sand: '#fef3c7'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+
     <style>
-        .gradient-ocean {
-            background: linear-gradient(135deg, #0c4a6e 0%, #0284c7 50%, #0d9488 100%);
+
+        :root {
+
+            --navy: #1B263B;
+
+            --slate: #415A77;
+
+            --light-blue: #E0E1DD;
+
+            --accent: #778DA9;
+
+            --bg: #F8F9FA;
+
         }
-        .card-blur {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(12px);
+
+        body {
+
+            font-family: 'Inter', sans-serif;
+
+            margin: 0;
+
+            background-color: var(--bg);
+
+            color: var(--navy);
+
+            line-height: 1.6;
+
         }
-        /* Custom styling for sliders */
-        input[type=range] {
-            accent-color: #0284c7;
+
+        header {
+
+            background-color: var(--navy);
+
+            color: white;
+
+            padding: 2rem;
+
+            text-align: center;
+
         }
+
+        h1, h2 { font-family: 'Lexend', sans-serif; }
+
+        .container {
+
+            max-width: 1100px;
+
+            margin: 0 auto;
+
+            padding: 2rem;
+
+        }
+
+        .team-section {
+
+            background: white;
+
+            padding: 1.5rem;
+
+            border-radius: 8px;
+
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+            margin-bottom: 2rem;
+
+        }
+
+        .dashboard {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 2rem;
+
+            margin-bottom: 3rem;
+
+        }
+
+        .chart-container {
+
+            background: white;
+
+            padding: 1.5rem;
+
+            border-radius: 8px;
+
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+        }
+
+        #threejs-container {
+
+            width: 100%;
+
+            height: 500px;
+
+            background: radial-gradient(circle, #1B263B 0%, #0D1321 100%);
+
+            border-radius: 12px;
+
+            position: relative;
+
+            overflow: hidden;
+
+            margin-top: 2rem;
+
+        }
+
+        .hotspot-info {
+
+            position: absolute;
+
+            bottom: 20px;
+
+            left: 20px;
+
+            right: 20px;
+
+            background: rgba(255, 255, 255, 0.9);
+
+            padding: 1rem;
+
+            border-radius: 8px;
+
+            display: none;
+
+            border-left: 5px solid var(--slate);
+
+        }
+
+        .controls-hint {
+
+            position: absolute;
+
+            top: 10px;
+
+            left: 10px;
+
+            color: white;
+
+            font-size: 0.8rem;
+
+            background: rgba(0,0,0,0.3);
+
+            padding: 5px 10px;
+
+            border-radius: 4px;
+
+        }
+
     </style>
+
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-ocean-500 selection:text-white flex flex-col min-h-screen">
 
-    <!-- Navigation Bar -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-filter backdrop-blur-md border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-ocean-600 text-white flex items-center justify-center shadow-lg shadow-ocean-600/30">
-                    <i class="fa-solid fa-water text-xl"></i>
-                </div>
-                <div>
-                    <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-ocean-800 to-ocean-600 bg-clip-text text-transparent">EcoMar</span>
-                </div>
-            </div>
+<body>
 
-            <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
-                <a href="#calculadora" class="hover:text-ocean-600 transition-colors">Calculadora</a>
-                <a href="#proyecciones" class="hover:text-ocean-600 transition-colors">Proyecciones</a>
-                <a href="#matematica" class="hover:text-ocean-600 transition-colors">Matemática del Proyecto</a>
-                <a href="#equipo" class="hover:text-ocean-600 transition-colors">Equipo</a>
-                <a href="#ecopuntos" class="hover:text-ocean-600 transition-colors">EcoPuntos</a>
-            </nav>
+    <header>
 
-            <a href="#calculadora" class="bg-ocean-600 hover:bg-ocean-700 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-ocean-600/20 hover:shadow-lg">
-                Calcular Huella
-            </a>
-        </div>
+        <h1>Proyecto EcoMar</h1>
+
+        <p>Preservación Tecnológica de los Océanos</p>
+
     </header>
 
-    <main class="flex-grow">
-        <!-- Hero Section -->
-        <section class="relative gradient-ocean text-white py-20 lg:py-28 overflow-hidden">
-            <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.1),transparent_70%)]"></div>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                    <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
-                        <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 text-cyan-200 text-xs font-medium border border-white/20">
-                            <i class="fa-solid fa-seedling text-eco-400"></i>
-                            <span>Conciencia Ambiental + Aprendizaje Matemático</span>
-                        </div>
-                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
-                            El Peso Real del Plástico en <span class="text-cyan-300 underline decoration-cyan-400/50 underline-offset-8">Nuestra Costa</span>
-                        </h1>
-                        <p class="text-slate-200 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                            El cuidado del mar no es solo una responsabilidad ambiental, sino también intercultural y económica para las comunidades pesqueras. Descubre con matemática interactiva cómo pequeños cambios en la escuela protegen la biodiversidad marina.
-                        </p>
-                        <div class="pt-4 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                            <a href="#calculadora" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-eco-500 hover:bg-eco-600 text-white font-bold text-center shadow-lg shadow-eco-500/30 transition-all flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-calculator"></i>
-                                <span>Usar Calculadora Interactiva</span>
-                            </a>
-                            <a href="#matematica" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-center border border-white/20 backdrop-blur-sm transition-all flex items-center justify-center space-x-2">
-                                <i class="fa-solid fa-chart-pie"></i>
-                                <span>Ver Datos y Fórmulas</span>
-                            </a>
-                        </div>
-                    </div>
+    <div class="container">
 
-                    <!-- Impact Cards Overview -->
-                    <div class="lg:col-span-5 grid grid-cols-2 gap-4">
-                        <div class="card-blur p-5 rounded-2xl border border-white/40 shadow-xl text-slate-800">
-                            <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-fish-fins text-lg"></i>
-                            </div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Fauna Protegida</p>
-                            <h3 class="text-2xl font-extrabold text-slate-900 mt-1" id="hero-fauna-counter">1,200+</h3>
-                            <p class="text-xs text-slate-600 mt-1">Especies marinas fuera de riesgo directo de ingestión.</p>
-                        </div>
-                        <div class="card-blur p-5 rounded-2xl border border-white/40 shadow-xl text-slate-800">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-scale-balanced text-lg"></i>
-                            </div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Plástico Reducido</p>
-                            <h3 class="text-2xl font-extrabold text-slate-900 mt-1" id="hero-weight-counter">4.5 Ton</h3>
-                            <p class="text-xs text-slate-600 mt-1">Proyección anual potencial del colegio.</p>
-                        </div>
-                        <div class="card-blur p-5 rounded-2xl border border-white/40 shadow-xl text-slate-800">
-                            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-anchor text-lg"></i>
-                            </div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Pesca Artesanal</p>
-                            <h3 class="text-2xl font-extrabold text-slate-900 mt-1">+18%</h3>
-                            <p class="text-xs text-slate-600 mt-1">Sostenibilidad económica en la costa local.</p>
-                        </div>
-                        <div class="card-blur p-5 rounded-2xl border border-white/40 shadow-xl text-slate-800">
-                            <div class="w-10 h-10 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-water text-lg"></i>
-                            </div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Área Marina</p>
-                            <h3 class="text-2xl font-extrabold text-slate-900 mt-1" id="hero-area-counter">35 Ha</h3>
-                            <p class="text-xs text-slate-600 mt-1">Mar libre de microplásticos acumulados.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Integrantes -->
+
+        <section class="team-section">
+
+            <h2>Equipo de Desarrollo</h2>
+
+            <ul>
+
+                <li><strong>Fabrizio Valle</strong> - Especialista en Visualización de Datos</li>
+
+                <li><span type="placeholder" placeholder-type="person"></span> - Liderazgo de Proyecto</li>
+
+            </ul>
+
         </section>
 
-        <!-- Interactive Calculator Section -->
-        <section id="calculadora" class="py-16 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-12">
-                <span class="text-ocean-600 font-bold text-sm tracking-wider uppercase bg-ocean-50 px-3 py-1 rounded-full border border-ocean-200">Herramienta Interactiva</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">Calculadora EcoMar de Huella Plástica</h2>
-                <p class="text-slate-600 mt-2 text-base">Ajusta los parámetros para observar en tiempo real cómo la matemática demuestra que pequeñas acciones individuales logran un enorme impacto en el mar.</p>
-            </div>
+        <!-- Gráficos Interactivos -->
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <!-- Controls Form -->
-                <div class="lg:col-span-5 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 space-y-6">
-                    <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center justify-between">
-                        <span>Parámetros de Entrada</span>
-                        <i class="fa-solid fa-sliders text-ocean-600"></i>
-                    </h3>
+        <section>
 
-                    <!-- Slider 1: Students -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                                <i class="fa-solid fa-users text-ocean-600"></i>
-                                <span>Personas / Estudiantes:</span>
-                            </label>
-                            <span id="students-val" class="font-bold text-ocean-700 bg-ocean-50 px-2.5 py-1 rounded-lg border border-ocean-200">500</span>
-                        </div>
-                        <input type="range" id="students" min="10" max="2000" step="10" value="500" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-1">Número de integrantes de la comunidad escolar.</p>
-                    </div>
+            <h2>Análisis de Impacto Ambiental</h2>
 
-                    <!-- Slider 2: Bottles -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                                <i class="fa-solid fa-bottle-water text-ocean-600"></i>
-                                <span>Botellas reducidas/día:</span>
-                            </label>
-                            <span id="bottles-val" class="font-bold text-ocean-700 bg-ocean-50 px-2.5 py-1 rounded-lg border border-ocean-200">1.0</span>
-                        </div>
-                        <input type="range" id="bottles" min="0" max="5" step="0.5" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-1">Promedio de botellas PET reducidas por persona al día (25g c/u).</p>
-                    </div>
+            <div class="dashboard">
 
-                    <!-- Slider 3: Bags/Packaging -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                                <i class="fa-solid fa-bag-shopping text-ocean-600"></i>
-                                <span>Bolsas/Empaques reducidos/día:</span>
-                            </label>
-                            <span id="bags-val" class="font-bold text-ocean-700 bg-ocean-50 px-2.5 py-1 rounded-lg border border-ocean-200">2.0</span>
-                        </div>
-                        <input type="range" id="bags" min="0" max="10" step="0.5" value="2" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-1">Promedio de empaques o bolsas plásticas evitadas al día (10g c/u).</p>
-                    </div>
+                <div class="chart-container">
 
-                    <!-- Slider 4: Days -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                                <i class="fa-solid fa-calendar-days text-ocean-600"></i>
-                                <span>Días Evaluados:</span>
-                            </label>
-                            <span id="days-val" class="font-bold text-ocean-700 bg-ocean-50 px-2.5 py-1 rounded-lg border border-ocean-200">180 días</span>
-                        </div>
-                        <input type="range" id="days" min="30" max="365" step="5" value="180" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-1">180 días equivale a un año escolar típico.</p>
-                    </div>
+                    <h3>Tipos de Desechos Plásticos</h3>
 
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs text-slate-600 space-y-1">
-                        <div class="font-bold text-slate-700 flex items-center space-x-1">
-                            <i class="fa-solid fa-calculator text-eco-600"></i>
-                            <span>Fórmula Aplicada:</span>
-                        </div>
-                        <p class="font-mono bg-white p-2 rounded border border-slate-200 text-slate-800">
-                            Plástico(kg) = N × (Botellas×0.025 + Bolsas×0.010) × Días
-                        </p>
-                    </div>
+                    <canvas id="barChart"></canvas>
+
                 </div>
 
-                <!-- Real-time Results Dashboard -->
-                <div class="lg:col-span-7 space-y-6">
-                    <!-- Main KPI Highlight Card -->
-                    <div class="bg-gradient-to-br from-slate-900 to-ocean-900 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
-                        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
-                            <i class="fa-solid fa-hand-holding-droplet"></i>
-                        </div>
-                        <span class="text-xs font-bold tracking-widest text-cyan-400 uppercase">Impacto Total Estimado</span>
-                        <div class="mt-4 flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
-                            <div>
-                                <div class="text-5xl sm:text-6xl font-black text-white tracking-tight" id="total-kg">4,050 <span class="text-2xl font-bold text-cyan-300">kg</span></div>
-                                <p class="text-slate-300 text-sm mt-1">Plástico evitado en el periodo evaluado</p>
-                            </div>
-                            <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-right">
-                                <span class="text-xs text-slate-300 block">Equivalente en Toneladas</span>
-                                <span class="text-2xl font-extrabold text-eco-400" id="total-ton">4.05 Ton</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="chart-container">
 
-                    <!-- Equivalences Grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <!-- Turtles Saved -->
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-turtle text-xl"></i>
-                            </div>
-                            <div class="text-2xl font-extrabold text-slate-900" id="turtles-val">81</div>
-                            <div class="text-xs font-semibold text-slate-500 mt-0.5">Tortugas y Aves Marinas</div>
-                            <p class="text-[11px] text-slate-400 mt-2 leading-tight">Protegidas de asfixia o ingestión tóxica indirecta.</p>
-                        </div>
+                    <h3>Distribución del Impacto</h3>
 
-                        <!-- Ocean Area -->
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-water text-xl"></i>
-                            </div>
-                            <div class="text-2xl font-extrabold text-slate-900" id="area-val">32.4 Ha</div>
-                            <div class="text-xs font-semibold text-slate-500 mt-0.5">Área de Costa Preservada</div>
-                            <p class="text-[11px] text-slate-400 mt-2 leading-tight">Equivalente a canchas de fútbol libres de microplásticos.</p>
-                        </div>
+                    <canvas id="pieChart"></canvas>
 
-                        <!-- Economic Benefit -->
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
-                                <i class="fa-solid fa-fish text-xl"></i>
-                            </div>
-                            <div class="text-2xl font-extrabold text-slate-900" id="eco-benefit">S/ 12,150</div>
-                            <div class="text-xs font-semibold text-slate-500 mt-0.5">Ahorro en Pesca Local</div>
-                            <p class="text-[11px] text-slate-400 mt-2 leading-tight">Reducción de daños en redes y pérdidas de captura.</p>
-                        </div>
-                    </div>
-
-                    <!-- Temporal Projections Card -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                        <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
-                            <i class="fa-solid fa-chart-line text-ocean-600"></i>
-                            <span>Proyección Temporal de Impacto (Escala de Tiempo)</span>
-                        </h4>
-                        <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <span class="text-xs font-medium text-slate-500 block">En 1 Año</span>
-                                <span class="text-lg font-bold text-slate-800" id="proj-1yr">4.05 Ton</span>
-                            </div>
-                            <div class="p-3 bg-ocean-50 rounded-xl border border-ocean-100">
-                                <span class="text-xs font-medium text-ocean-600 block">En 5 Años</span>
-                                <span class="text-lg font-bold text-ocean-800" id="proj-5yr">20.25 Ton</span>
-                            </div>
-                            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                                <span class="text-xs font-medium text-emerald-600 block">En 10 Años</span>
-                                <span class="text-lg font-bold text-emerald-800" id="proj-10yr">40.50 Ton</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
+
             </div>
+
         </section>
 
-        <!-- Projections Chart Section -->
-        <section id="proyecciones" class="py-16 bg-slate-100/70 border-y border-slate-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                    <div class="lg:col-span-5 space-y-4">
-                        <span class="text-eco-600 font-bold text-sm tracking-wider uppercase bg-eco-50 px-3 py-1 rounded-full border border-eco-200">Modelado Dinámico</span>
-                        <h2 class="text-3xl font-extrabold text-slate-900">Proyección de Acumulación vs. Reducción</h2>
-                        <p class="text-slate-600 text-sm leading-relaxed">
-                            Si no actuamos, los plásticos se acumulan exponencialmente en el fondo marino. Esta gráfica compara el escenario pasivo (contaminación progresiva) frente al escenario de reducción activa mediante la segregación escolar.
-                        </p>
-                        <div class="p-4 bg-white rounded-2xl border border-slate-200 space-y-2 text-xs">
-                            <div class="flex items-center justify-between">
-                                <span class="flex items-center space-x-2 text-slate-700 font-medium">
-                                    <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
-                                    <span>Escenario Pasivo (Sin reciclaje)</span>
-                                </span>
-                                <span class="font-bold text-rose-600">Acumulativo (+)</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="flex items-center space-x-2 text-slate-700 font-medium">
-                                    <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
-                                    <span>Escenario EcoMar (Reducción)</span>
-                                </span>
-                                <span class="font-bold text-emerald-600">Sostenible (✔)</span>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Maqueta 3D -->
 
-                    <div class="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200 shadow-lg">
-                        <div class="h-80 relative">
-                            <canvas id="projectionChart"></canvas>
-                        </div>
-                    </div>
+        <section>
+
+            <h2>Visualización Inmersiva 3D: Ecosistema Marino</h2>
+
+            <p>Interactúa con la maqueta para identificar puntos críticos de contaminación y soluciones propuestas.</p>
+
+            <div id="threejs-container">
+
+                <div class="controls-hint">Haz clic en las esferas flotantes para obtener información</div>
+
+                <div id="info-card" class="hotspot-info">
+
+                    <h4 id="info-title">Detalle</h4>
+
+                    <p id="info-content">Selecciona un punto de interés.</p>
+
                 </div>
+
             </div>
+
         </section>
 
-        <!-- Team Section -->
-        <section id="equipo" class="py-12 bg-white border-b border-slate-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-2xl mx-auto mb-8">
-                    <span class="text-ocean-600 font-bold text-sm tracking-wider uppercase bg-ocean-50 px-3 py-1 rounded-full border border-ocean-200">Autores</span>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Equipo de Trabajo</h2>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 rounded-full bg-ocean-100 text-ocean-700 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                            MB
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Marcello Bardales</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Integrante del Proyecto</p>
-                    </div>
-                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                            GG
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Gonzalo Gutierres</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Integrante del Proyecto</p>
-                    </div>
-                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                            DC
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">David Cupe</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Integrante del Proyecto</p>
-                    </div>
-                    <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center mx-auto mb-3 text-lg font-bold">
-                            FV
-                        </div>
-                        <h3 class="font-bold text-slate-900 text-base">Fabricio Valle</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Integrante del Proyecto</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- EcoPuntos Section -->
-        <section id="ecopuntos" class="py-16 bg-gradient-to-b from-slate-50 to-blue-50/50 border-t border-slate-200">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-3xl mx-auto mb-12">
-                    <span class="text-eco-600 font-bold text-sm tracking-wider uppercase bg-eco-50 px-3 py-1 rounded-full border border-eco-200">Plan de Acción Escolar</span>
-                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3">Puntos de Segregación (EcoPuntos)</h2>
-                    <p class="text-slate-600 mt-2 text-base">Aprende a clasificar los plásticos correctamente en el colegio para garantizar su reciclaje eficaz y evitar que lleguen al mar.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Plastic PET Card -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg transition-all group">
-                        <div class="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center text-xl font-bold mb-4 shadow-md shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-bottle-water"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-900">Tacho Blanco: Plásticos PET (Tipo 1)</h3>
-                        <p class="text-xs text-slate-500 mt-1">Botellas de agua, jugos y bebidas rehidratantes.</p>
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Lavar y escurrir antes de depositar.</span>
-                            </li>
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Aplanar la botella para optimizar volumen.</span>
-                            </li>
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Retirar tapas para reciclaje separado.</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Polyethylene Card -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg transition-all group">
-                        <div class="w-12 h-12 rounded-2xl bg-teal-500 text-white flex items-center justify-center text-xl font-bold mb-4 shadow-md shadow-teal-500/20 group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-bag-shopping"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-900">Tacho Azul: Envoltorios y Bolsas</h3>
-                        <p class="text-xs text-slate-500 mt-1">Bolsas PEBD, empaques limpios de galletas y snacks.</p>
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Asegurarse de que no contengan restos orgánicos.</span>
-                            </li>
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Agrupar varias bolsas en una sola.</span>
-                            </li>
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Reutilizar en ecoladrillos si no es reciclable.</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Organic/General Waste Card -->
-                    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-lg transition-all group">
-                        <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl font-bold mb-4 shadow-md shadow-amber-500/20 group-hover:scale-110 transition-transform">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-900">Tacho Marrón: Orgánicos y No Reciclables</h3>
-                        <p class="text-xs text-slate-500 mt-1">Restos de frutas, comida y papel servilleta.</p>
-                        <ul class="mt-4 space-y-2 text-xs text-slate-600">
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Compostar residuos de frutas y verduras.</span>
-                            </li>
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Evitar mezclar plásticos limpios aquí.</span>
-                            </li>
-                            <li class="flex items-center space-x-2">
-                                <i class="fa-solid fa-check text-eco-500"></i>
-                                <span>Mantener tapado para evitar malos olores.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-white border-t border-slate-800 py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-6">
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-lg bg-ocean-600 text-white flex items-center justify-center font-bold">
-                    <i class="fa-solid fa-water"></i>
-                </div>
-                <span class="font-bold text-lg">EcoMar Project</span>
-            </div>
-            <p class="text-xs text-slate-400 text-center sm:text-right">
-                Proyecto Integrado de Matemática y Conciencia Ambiental Escolar.<br>
-                Desarrollado por Marcello Bardales, Gonzalo Gutierres, David Cupe y Fabricio Valle.
-            </p>
-        </div>
-    </footer>
+    </div>
 
     <script>
-        // DOM Elements
-        const studentsInput = document.getElementById('students');
-        const bottlesInput = document.getElementById('bottles');
-        const bagsInput = document.getElementById('bags');
-        const daysInput = document.getElementById('days');
 
-        const studentsVal = document.getElementById('students-val');
-        const bottlesVal = document.getElementById('bottles-val');
-        const bagsVal = document.getElementById('bags-val');
-        const daysVal = document.getElementById('days-val');
+        // 1. Configuración de Chart.js - Gráfico de Barras
 
-        const totalKgEl = document.getElementById('total-kg');
-        const totalTonEl = document.getElementById('total-ton');
-        const turtlesValEl = document.getElementById('turtles-val');
-        const areaValEl = document.getElementById('area-val');
-        const ecoBenefitEl = document.getElementById('eco-benefit');
+        const ctxBar = document.getElementById('barChart').getContext('2d');
 
-        const proj1yrEl = document.getElementById('proj-1yr');
-        const proj5yrEl = document.getElementById('proj-5yr');
-        const proj10yrEl = document.getElementById('proj-10yr');
+        new Chart(ctxBar, {
 
-        const heroFaunaEl = document.getElementById('hero-fauna-counter');
-        const heroWeightEl = document.getElementById('hero-weight-counter');
-        const heroAreaEl = document.getElementById('hero-area-counter');
+            type: 'bar',
 
-        let projectionChart = null;
-        let wasteChart = null;
+            data: {
 
-        // Constants for conversion
-        const BOTTLE_WEIGHT_KG = 0.025; // 25 grams per PET bottle
-        const BAG_WEIGHT_KG = 0.010;    // 10 grams per bag/packaging
+                labels: ['Botellas', 'Redes', 'Microplásticos', 'Bolsas', 'Otros'],
 
-        function calculateImpact() {
-            const students = parseFloat(studentsInput.value);
-            const bottles = parseFloat(bottlesInput.value);
-            const bags = parseFloat(bagsInput.value);
-            const days = parseFloat(daysInput.value);
+                datasets: [{
 
-            // Update displayed values in UI
-            studentsVal.textContent = students.toLocaleString();
-            bottlesVal.textContent = bottles.toFixed(1);
-            bagsVal.textContent = bags.toFixed(1);
-            daysVal.textContent = `${days} días`;
+                    label: 'Toneladas Recolectadas',
 
-            // Calculate total plastic avoided in Kg
-            const dailyKgPerPerson = (bottles * BOTTLE_WEIGHT_KG) + (bags * BAG_WEIGHT_KG);
-            const totalKg = students * dailyKgPerPerson * days;
-            const totalTon = totalKg / 1000;
+                    data: [2500, 1200, 3800, 950, 450],
 
-            // Update main KPI
-            totalKgEl.innerHTML = `${totalKg.toLocaleString('es-PE', {maximumFractionDigits: 1})} <span class="text-2xl font-bold text-cyan-300">kg</span>`;
-            totalTonEl.textContent = `${totalTon.toFixed(2)} Ton`;
+                    backgroundColor: '#415A77',
 
-            // Calculate Equivalences
-            const turtlesSaved = Math.round(totalKg / 50); // ~50kg avoided saves 1 marine animal from ingestion risk
-            const oceanAreaHa = (totalKg / 125).toFixed(1); // ~125kg per hectare of ocean impact
-            const ecoSavingsSol = Math.round(totalKg * 3); // ~S/ 3 per kg avoided in local fishery impact
+                    borderRadius: 5
 
-            turtlesValEl.textContent = turtlesSaved.toLocaleString();
-            areaValEl.textContent = `${oceanAreaHa} Ha`;
-            ecoBenefitEl.textContent = `S/ ${ecoSavingsSol.toLocaleString()}`;
+                }]
 
-            // Projections over time (assuming 180 school days/year)
-            const annualTon = (students * dailyKgPerPerson * 180) / 1000;
-            proj1yrEl.textContent = `${annualTon.toFixed(2)} Ton`;
-            proj5yrEl.textContent = `${(annualTon * 5).toFixed(2)} Ton`;
-            proj10yrEl.textContent = `${(annualTon * 10).toFixed(2)} Ton`;
+            },
 
-            // Update Hero elements dynamically
-            heroFaunaEl.textContent = `${Math.round(turtlesSaved * 1.5)}+`;
-            heroWeightEl.textContent = `${annualTon.toFixed(1)} Ton`;
-            heroAreaEl.textContent = `${oceanAreaHa} Ha`;
+            options: { responsive: true, plugins: { legend: { display: false } } }
 
-            // Update Projections Chart
-            updateProjectionChart(annualTon);
-        }
-
-        // Initialize Charts
-        function initCharts() {
-            // Projection Chart
-            const ctxProjection = document.getElementById('projectionChart').getContext('2d');
-            projectionChart = new Chart(ctxProjection, {
-                type: 'line',
-                data: {
-                    labels: ['Año 0', 'Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5'],
-                    datasets: [
-                        {
-                            label: 'Acumulación Pasiva sin Acción (Ton)',
-                            data: [0, 5, 10, 15, 20, 25],
-                            borderColor: '#f43f5e',
-                            backgroundColor: 'rgba(244, 63, 94, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Plástico Evitado con EcoMar (Ton)',
-                            data: [0, 4, 8, 12, 16, 20],
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: { family: 'Inter', size: 11 }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Toneladas de Plástico (Ton)' }
-                        }
-                    }
-                }
-            });
-
-            // Waste Distribution Donut Chart
-            const ctxWaste = document.getElementById('wasteChart').getContext('2d');
-            wasteChart = new Chart(ctxWaste, {
-                type: 'doughnut',
-                data: {
-                    labels: ['PET (Botellas)', 'Polietileno (Bolsas)', 'Poliestireno (Tecnopor)', 'Otros'],
-                    datasets: [{
-                        data: [45, 30, 15, 10],
-                        backgroundColor: ['#0284c7', '#0d9488', '#f59e0b', '#64748b'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                font: { family: 'Inter', size: 11 }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateProjectionChart(annualTon) {
-            if (!projectionChart) return;
-
-            const years = [0, 1, 2, 3, 4, 5];
-            const passiveData = years.map(y => (annualTon * 1.3 * y).toFixed(2));
-            const ecoData = years.map(y => (annualTon * y).toFixed(2));
-
-            projectionChart.data.datasets[0].data = passiveData;
-            projectionChart.data.datasets[1].data = ecoData;
-            projectionChart.update();
-        }
-
-        // Event Listeners
-        [studentsInput, bottlesInput, bagsInput, daysInput].forEach(element => {
-            element.addEventListener('input', calculateImpact);
         });
 
-        // Window Load Initializer
-        window.onload = function() {
-            initCharts();
-            calculateImpact();
+        // 2. Configuración de Chart.js - Gráfico Circular
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+
+        new Chart(ctxPie, {
+
+            type: 'pie',
+
+            data: {
+
+                labels: ['Biodiversidad', 'Microplásticos', 'Contaminación Química', 'Hábitat'],
+
+                datasets: [{
+
+                    data: [40, 30, 20, 10],
+
+                    backgroundColor: ['#1B263B', '#415A77', '#778DA9', '#E0E1DD']
+
+                }]
+
+            }
+
+        });
+
+        // 3. Simulación 3D con Three.js
+
+        const container = document.getElementById('threejs-container');
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+        renderer.setSize(container.clientWidth, container.clientHeight);
+
+        container.appendChild(renderer.domElement);
+
+        // Iluminación
+
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+
+        light.position.set(10, 10, 10);
+
+        scene.add(light);
+
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // Representación del Océano (Plano azulado)
+
+        const geometry = new THREE.SphereGeometry(2, 32, 32);
+
+        const material = new THREE.MeshPhongMaterial({ color: 0x415A77, transparent: true, opacity: 0.8 });
+
+        const ocean = new THREE.Mesh(geometry, material);
+
+        scene.add(ocean);
+
+        // Hotspots (Esferas interactivas)
+
+        const hotspots = [];
+
+        const createHotspot = (x, y, z, info) => {
+
+            const hGeo = new THREE.SphereGeometry(0.2, 16, 16);
+
+            const hMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            const hotspot = new THREE.Mesh(hGeo, hMat);
+
+            hotspot.position.set(x, y, z);
+
+            hotspot.userData = info;
+
+            hotspots.push(hotspot);
+
+            scene.add(hotspot);
+
         };
+
+        createHotspot(2.2, 0, 0, { title: "Zona de Microplásticos", text: "Alta concentración detectada en corrientes superficiales." });
+
+        createHotspot(-1, 1.8, 1, { title: "Biodiversidad", text: "Área protegida con arrecifes de coral en recuperación." });
+
+        createHotspot(0, -2.2, 0, { title: "Soluciones: Filtros", text: "Propuesta de implementación de barreras biotecnológicas." });
+
+        camera.position.z = 5;
+
+        // Raycaster para interacciones
+
+        const raycaster = new THREE.Raycaster();
+
+        const mouse = new THREE.Vector2();
+
+        container.addEventListener('click', (event) => {
+
+            const rect = container.getBoundingClientRect();
+
+            mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+
+            mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(hotspots);
+
+            if (intersects.length > 0) {
+
+                const data = intersects[0].object.userData;
+
+                document.getElementById('info-card').style.display = 'block';
+
+                document.getElementById('info-title').innerText = data.title;
+
+                document.getElementById('info-content').innerText = data.text;
+
+            }
+
+        });
+
+        function animate() {
+
+            requestAnimationFrame(animate);
+
+            ocean.rotation.y += 0.005;
+
+            hotspots.forEach(h => {
+
+                h.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.005);
+
+            });
+
+            renderer.render(scene, camera);
+
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+
+            camera.aspect = container.clientWidth / container.clientHeight;
+
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(container.clientWidth, container.clientHeight);
+
+        });
+
     </script>
+
 </body>
+
 </html>
+
